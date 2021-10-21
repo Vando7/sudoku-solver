@@ -11,6 +11,9 @@ class Sudoku(object):
 
 
     def printBoard(self):
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
         self._printBoard(self.board)
 
 
@@ -32,7 +35,7 @@ class Sudoku(object):
     def loadBoard(self, path):
         if(path == None):
             print("loadBoard: no 'file' argument given, terminating.")
-            return 0
+            return 
 
         print("Loading file.")
         file = open(path, 'r')
@@ -55,6 +58,10 @@ class Sudoku(object):
     
     
     def cellValues(self, board):
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
+        
         cells = [[0 for i in range(9)] for i in range(9)]
         
         for i in range(9):
@@ -68,6 +75,10 @@ class Sudoku(object):
     
     
     def fillHiddenSingles(self, board):
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
+        
         cells = self.cellValues(board)
         
         # Fill hidden singles per column
@@ -120,6 +131,10 @@ class Sudoku(object):
     
 
     def possibleValues(self, board, row, col):
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
+        
         usedValues = [0 for i in range(10)]
         
         for i in range(0,9):
@@ -157,7 +172,10 @@ class Sudoku(object):
 
 
     def _solve(self, board):
-        #self._printBoard(board)
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
+        
         blankRow = -1
         blankCol = -1
 
@@ -193,14 +211,14 @@ class Sudoku(object):
 
     def solve(self):
         if self.isOpen == False:
-            print("No board written.")
+            print("No board loaded.")
             return
         self._solve(self.board)
         
 
     def smart_solve(self):
         if self.isOpen == False:
-            print("No board written.")
+            print("No board loaded.")
             return
         
         self.fillHiddenSingles(self.board)
@@ -242,13 +260,16 @@ class Sudoku(object):
 
 
 def main():
-    # if(len(sys.argv) != 2):
-    #     print("No arguments given.")
-    #     print("Usage:\n$ python sudoku.py [file path]")
-    #     return 0
+    if(len(sys.argv) != 2):
+        print("No arguments given.")
+        print("Usage:\n$ python sudoku.py [file path]")
+        return 0
 
-    #sudoku = Sudoku(sys.argv[1])
-    sudoku = Sudoku("board4.txt")
+    sudoku = Sudoku(sys.argv[1])
+    
+    if(sudoku.isOpen == False):
+        return
+    
     print("Input board:\n")
     sudoku.printBoard()
     print("\nSolving . . . \n")
