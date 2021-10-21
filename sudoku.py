@@ -1,7 +1,7 @@
 import sys
 import os
 from array import *
-sys.setrecursionlimit(2000)
+import threading
 
 
 class Sudoku(object):
@@ -36,7 +36,7 @@ class Sudoku(object):
 
     def loadBoard(self, path):
         if(path == None):
-            print("loadBoard: no 'file' argument given, terminating.")
+            print("loadBoard: no 'file' argument given, closing.")
             return
 
         print("Loading file.")
@@ -132,19 +132,19 @@ class Sudoku(object):
         return
 
 
-    def possibleValues(self, board, row, col):
-        if self.isOpen == False:
-            print("No board loaded.")
-            return
-
-        usedValues = [0 for i in range(10)]
-
+    def possibleValuesCol(self, board, col, usedValuesCol):
         for i in range(0, 9):
             if(board[i][col] != 0):
-                usedValues[board[i][col]] = 1
+                usedValuesCol[board[i][col]] = 1
+                
+    
+    def possibleValuesRow(self, board, row, usedValuesRow):
+        for i in range(0, 9):
             if(board[row][i] != 0):
-                usedValues[board[row][i]] = 1
+                usedValuesRow[board[row][i]] = 1
 
+
+    def possibleValuesSqu(self, board, row, col, usedValuesSqu):
         quadrantRow = 1
         quadrantCol = 1
 
@@ -163,7 +163,36 @@ class Sudoku(object):
         for i in range(quadrantRow, quadrantRow+3):
             for j in range(quadrantCol, quadrantCol+3):
                 if(board[i][j] != 0):
-                    usedValues[board[i][j]] = 1
+                    usedValuesSqu[board[i][j]] = 1
+
+
+    def possibleValues(self, board, row, col):
+        if self.isOpen == False:
+            print("No board loaded.")
+            return
+        
+        usedValuesRow = [0 for i in range(10)] #self.possibleValuesRow(board, row)
+        usedValuesCol = [0 for i in range(10)] #self.possibleValuesCol(board, col)
+        usedValuesSqu = [0 for i in range(10)] #self.possibleValuesSquare(board,row,col)
+        
+        thRow = threading.Thread(target=self.possibleValuesRow, args=(board, row, usedValuesRow))
+        thCol = threading.Thread(target=self.possibleValuesCol, args=(board, col, usedValuesCol))
+        thSqu = threading.Thread(target=self.possibleValuesSqu, args=(board, row, col, usedValuesSqu))
+        
+        thRow.start()
+        thCol.start()
+        thSqu.start()
+        
+        thRow.join()
+        thCol.join()
+        thSqu.join()
+        
+        usedValues = [0 for i in range(10)]
+        for i in range(10):
+            if(usedValuesRow[i]     == 1 or 
+               usedValuesCol[i]     == 1 or 
+               usedValuesSqu[i]     == 1):
+                usedValues[i] = 1
 
         result = []
         for i in range(1, 10):
@@ -194,7 +223,7 @@ class Sudoku(object):
         if blankRow == -1:
             print("Solved board:")
             self._printBoard(board)
-            self.writeBoard()
+            #self.writeBoard()
             return True
 
         allowedValues = self.possibleValues(board, blankRow, blankCol)
@@ -229,6 +258,7 @@ class Sudoku(object):
     def __init__(self, path=''):
         if(os.path.exists(path) == False):
             print("File '" + path + "' does not exist.")
+            print("Note: make sure you've written the file extension as well.")
             return
 
         if(os.path.isdir(path)):
