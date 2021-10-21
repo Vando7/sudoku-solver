@@ -223,7 +223,7 @@ class Sudoku(object):
         if blankRow == -1:
             print("Solved board:")
             self._printBoard(board)
-            #self.writeBoard()
+            self.writeBoard()
             return True
 
         allowedValues = self.possibleValues(board, blankRow, blankCol)
